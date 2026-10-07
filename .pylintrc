@@ -1,0 +1,22 @@
+# .pylintrc
+# torchcomms-hccl Python 代码检查配置
+
+[MAIN]
+py-version = 3.10
+ignore = _comms_hccl
+
+[MESSAGES CONTROL]
+disable =
+    missing-module-docstring,
+    missing-class-docstring,
+    missing-function-docstring,
+    import-outside-toplevel,
+    line-too-long,
+    too-many-locals
+
+[FORMAT]
+max-line-length = 88
+
+[BASIC]
+variable-rgx = [a-z_][a-z0-9_]{0,30}$
+function-rgx = [a-z_][a-z0-9_]{0,30}$

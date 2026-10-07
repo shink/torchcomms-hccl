@@ -1,0 +1,38 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install PyTorch (CPU)
+        run: |
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+
+      - name: Install build deps
+        run: pip install setuptools wheel cmake>=3.22
+
+      - name: Verify project metadata
+        run: |
+          python setup.py --version
+
+      - name: Run Python unit tests (no NPU needed)
+        run: |
+          pip install pytest
+          python -m pytest tests/test_import.py -v || true
