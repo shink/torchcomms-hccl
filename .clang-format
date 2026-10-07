@@ -1,0 +1,24 @@
+# .clang-format
+# 与 torchcomms 主项目保持一致的 C++ 代码风格
+BasedOnStyle: Google
+IndentWidth: 2
+ColumnLimit: 80
+Language: Cpp
+Standard: c++20
+AlignAfterOpenBracket: Align
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLambdasOnASingleLine: All
+BreakBeforeBraces: Attach
+DerivePointerAlignment: false
+PointerAlignment: Left
+SortIncludes: true
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex: '^<.*\.hpp>'
+    Priority: 1
+  - Regex: '^<.*\.h>'
+    Priority: 1
+  - Regex: '^".*"'
+    Priority: 2
+SpaceBeforeParens: ControlStatements

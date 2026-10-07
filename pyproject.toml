@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools>=64.0", "wheel", "cmake>=3.22"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "torchcomms-hccl"
+version = "0.1.0"
+description = "CANN HCCL backend for torchcomms"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.10"
+authors = [
+    { name = "Yuanhao Ji" },
+]
+keywords = ["pytorch", "distributed", "hccl", "cann", "torchcomms"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: C++",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+dependencies = [
+    "torch>=2.8",
+    "torchcomms",
+    "torch-npu",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pylint",
+    "clang-format",
+]
+
+[project.entry-points."torchcomms.backends"]
+hccl = "torchcomms_hccl"
+
+[tool.setuptools]
+packages = ["torchcomms_hccl"]
+
+[tool.pylint.main]
+py-version = "3.10"
+ignore = ["_comms_hccl"]
+
+[tool.pylint.'messages control']
+disable = [
+    "missing-module-docstring",
+    "missing-class-docstring",
+    "missing-function-docstring",
+    "import-outside-toplevel",
+    "line-too-long",
+]
+
+[tool.pylint.format]
+max-line-length = 88
