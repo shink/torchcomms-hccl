@@ -29,7 +29,7 @@ jobs:
       - name: Install torchcomms (for linking)
         run: |
           pip install torch --index-url https://download.pytorch.org/whl/cpu
-          pip install torchcomms || true
+          pip install torchcomms
 
       - name: Build sdist
         run: python -m build --sdist --outdir dist/
@@ -38,7 +38,7 @@ jobs:
         run: python -m build --wheel --outdir dist/
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: dist
           path: dist/
@@ -49,7 +49,7 @@ jobs:
     environment: pypi
     steps:
       - name: Download artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: dist
           path: dist/

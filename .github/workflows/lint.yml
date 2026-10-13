@@ -28,7 +28,7 @@ jobs:
 
       - name: clang-format check
         run: |
-          find csrc -name '*.hpp' -o -name '*.cpp' -o -name '*.h' \
+          find src -name '*.hpp' -o -name '*.cpp' -o -name '*.h' \
             | xargs clang-format --dry-run --Werror
 
       - name: pylint check

@@ -9,7 +9,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # 路径常量
 # ====================================================================
 
-set(CSRC_DIR ${CMAKE_SOURCE_DIR}/csrc)
+set(CSRC_DIR ${CMAKE_SOURCE_DIR}/src)
 set(THIRD_PARTY_DIR ${CMAKE_SOURCE_DIR}/third_party)
 set(STUBS_DIR ${THIRD_PARTY_DIR}/stubs)
 

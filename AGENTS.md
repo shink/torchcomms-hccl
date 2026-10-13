@@ -11,14 +11,14 @@ The Python package `torchcomms_hccl` is a thin shim; the real work is the
 
 ## Backend registration wiring (load-bearing)
 
-Understand this before touching `csrc/`:
+Understand this before touching `src/`:
 
 - `pyproject.toml` declares entry point `hccl = "torchcomms_hccl"` in group
   `torchcomms.backends` (discovered via `importlib.metadata.entry_points`).
 - `import torchcomms_hccl` (`torchcomms_hccl/__init__.py`) pre-loads
   `libtorchcomms.so` via `ctypes.CDLL(..., RTLD_LOCAL)` so the C++ extension can
   resolve `TorchCommFactory` symbols, then imports `_comms_hccl`.
-- `csrc/module.cpp` has a file-scope static initializer that calls
+- `src/module.cpp` has a file-scope static initializer that calls
   `TorchCommFactory::get().register_backend("hccl", factory,
   TORCHCOMM_BACKEND_ABI_VERSION)`. The pybind11 module exports **nothing** —
   registration is a side effect of `.so` load. Do not move registration into
@@ -76,12 +76,12 @@ loads the real `libhccl.so` / `libascendcl.so` from the installed CANN.
 pip install -e ".[dev]"                        # pytest, pylint, clang-format
 
 # Lint — CI enforces clang-format hard, pylint soft:
-find csrc -name '*.hpp' -o -name '*.cpp' -o -name '*.h' \
+find src -name '*.hpp' -o -name '*.cpp' -o -name '*.h' \
   | xargs clang-format --dry-run --Werror      # HARD FAIL in CI
 pylint torchcomms_hccl/                         # CI runs with || true
 
 # Format C++ in place:
-find csrc -name '*.hpp' -o -name '*.cpp' | xargs clang-format -i
+find src -name '*.hpp' -o -name '*.cpp' | xargs clang-format -i
 
 # Tests:
 pytest tests/test_import.py -v                  # no NPU needed (metadata only)
@@ -116,8 +116,8 @@ box — never trust CI green as proof of runtime correctness.
 
 ## Adding a collective op
 
-Follow the existing split: sync path in `csrc/TorchCommHCCL.cpp`, async work
-handle in `csrc/TorchWorkHCCL.cpp`, raw HCCL wrapper in `csrc/HcclApi.hpp`.
+Follow the existing split: sync path in `src/TorchCommHCCL.cpp`, async work
+handle in `src/TorchWorkHCCL.cpp`, raw HCCL wrapper in `src/HcclApi.hpp`.
 The op must satisfy the `TorchCommBackend` contract defined by the
 submodule headers in `third_party/torchcomms/comms/torchcomms/` — check
 `TorchCommBackend.hpp` and `TorchWork.hpp` for the method signatures to

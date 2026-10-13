@@ -8,7 +8,7 @@ include pyproject.toml
 include .gitmodules
 
 # C++ 源码
-recursive-include csrc *.hpp *.cpp *.h
+recursive-include src *.hpp *.cpp *.h
 
 # Stub 库源码 (用于无 CANN 环境下编译)
 recursive-include third_party/stubs *.c

@@ -54,6 +54,8 @@ disable = [
     "missing-class-docstring",
     "missing-function-docstring",
     "import-outside-toplevel",
+    "wrong-import-position",
+    "import-self",
     "line-too-long",
 ]
 
