@@ -41,3 +41,6 @@ venv/
 # Agents
 .claude/
 .omo/
+
+# Stub libraries (generated at build time)
+third_party/stubs/*.so

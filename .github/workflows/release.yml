@@ -13,25 +13,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.10"
 
       - name: Install build dependencies
         run: |
-          pip install setuptools wheel cmake>=3.22 build
+          pip install setuptools wheel cmake build
+
+      - name: Install torchcomms (for linking)
+        run: |
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install torchcomms || true
 
       - name: Build sdist
         run: python -m build --sdist --outdir dist/
 
-      - name: Build wheel (source, requires CANN at build time)
-        run: python -m build --wheel --outdir dist/ || true
-        continue-on-error: true
-        env:
-          ASCEND_HOME_PATH: ${{ env.ASCEND_HOME_PATH }}
+      - name: Build wheel (uses submodule headers + stub libs, no CANN needed)
+        run: python -m build --wheel --outdir dist/
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

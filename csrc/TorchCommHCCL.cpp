@@ -67,22 +67,23 @@ void TorchCommHCCL::init(at::Device device, const std::string& name,
   //    若 options.store 为空,自动创建 TCPStore
   c10::intrusive_ptr<c10d::Store> store = options_.store;
   if (!store) {
-    // 从环境变量创建 TCPStore
     const char* masterAddr = std::getenv("MASTER_ADDR");
     const char* masterPort = std::getenv("MASTER_PORT");
     TORCH_CHECK(masterAddr != nullptr && masterPort != nullptr,
                 "HCCL init: MASTER_ADDR and MASTER_PORT must be set, "
                 "or a store must be provided via CommOptions.store");
-    store = c10::make_intrusive<c10d::TCPStore>(
-        masterAddr, std::stoi(masterPort), comm_size_, rank_ == 0);
+    c10d::TCPStoreOptions opts;
+    opts.port = static_cast<std::uint16_t>(std::stoi(masterPort));
+    opts.numWorkers = static_cast<std::size_t>(comm_size_);
+    opts.isServer = (rank_ == 0);
+    store = c10::make_intrusive<c10d::TCPStore>(masterAddr, opts);
   }
 
-  // 使用 PrefixStore 隔离不同通信器的 key
-  c10d::PrefixStore prefixStore(name_, *store);
+  auto prefixStore = c10::make_intrusive<c10d::PrefixStore>(name_, store);
 
   HcclRootInfo rootInfo{};
   std::string key = "hccl_root_info";
-  exchangeRootInfo(prefixStore, key, rootInfo, options_.timeout);
+  exchangeRootInfo(*prefixStore, key, rootInfo, options_.timeout);
 
   // 5. 创建 HCCL 通信器
   auto hcclErr =

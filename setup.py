@@ -13,6 +13,35 @@ from setuptools import Extension, setup
 from setuptools.command.build_ext import build_ext as build_ext_orig
 
 
+def ensure_submodules():
+    """确保 git submodule 已初始化和更新"""
+    root = pathlib.Path(__file__).resolve().parent
+    gitmodules = root / ".gitmodules"
+    if not gitmodules.exists():
+        return
+    for _ in range(2):
+        result = subprocess.run(
+            ["git", "submodule", "status"],
+            cwd=str(root),
+            capture_output=True,
+            text=True,
+        )
+        needs_init = any(
+            line.startswith("-") for line in result.stdout.strip().splitlines()
+        )
+        if not needs_init:
+            break
+        print("Initializing git submodules...")
+        subprocess.run(
+            ["git", "submodule", "update", "--init", "--recursive"],
+            cwd=str(root),
+            check=True,
+        )
+
+
+ensure_submodules()
+
+
 class CMakeExtension(Extension):
     """自定义 Extension,不使用 setuptools 默认的构建流程"""
 
@@ -26,7 +55,7 @@ class build_ext(build_ext_orig):
     def run(self):
         for ext in self.extensions:
             self.build_cmake(ext)
-            break  # 只有一个 extension
+            break
 
     def build_cmake(self, ext):
         cwd = pathlib.Path().absolute()

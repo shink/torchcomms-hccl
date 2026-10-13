@@ -1,0 +1,17 @@
+include CMakeLists.txt
+include LICENSE
+include README.md
+include setup.py
+include pyproject.toml
+
+# Git submodule 配置
+include .gitmodules
+
+# C++ 源码
+recursive-include csrc *.hpp *.cpp *.h
+
+# Stub 库源码 (用于无 CANN 环境下编译)
+recursive-include third_party/stubs *.c
+
+# sdist 不包含 submodule 内容 (用户 clone 时通过 git submodule init 获取)
+# wheel 构建时直接从源码树读取 submodule 头文件

@@ -14,10 +14,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.10"
 
@@ -26,7 +28,7 @@ jobs:
           pip install torch --index-url https://download.pytorch.org/whl/cpu
 
       - name: Install build deps
-        run: pip install setuptools wheel cmake>=3.22
+        run: pip install setuptools wheel cmake
 
       - name: Verify project metadata
         run: |
@@ -35,4 +37,4 @@ jobs:
       - name: Run Python unit tests (no NPU needed)
         run: |
           pip install pytest
-          python -m pytest tests/test_import.py -v || true
+          python -m pytest tests/test_import.py -v

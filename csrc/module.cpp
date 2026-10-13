@@ -2,6 +2,7 @@
 //
 // Python 绑定模块:加载时自动注册 HCCL 后端到 TorchCommFactory
 
+#include <comms/torchcomms/TorchCommBackend.hpp>
 #include <comms/torchcomms/TorchCommFactory.hpp>
 #include <pybind11/pybind11.h>
 
@@ -16,9 +17,11 @@ namespace {
 class HCCLBackendRegister {
  public:
   HCCLBackendRegister() {
-    torch::comms::TorchCommFactory::get().register_backend("hccl", []() {
-      return std::make_shared<torch::comms::TorchCommHCCL>();
-    });
+    // 使用带 ABI 版本号的 register_backend 重载
+    torch::comms::TorchCommFactory::get().register_backend(
+        "hccl",
+        []() { return std::make_shared<torch::comms::TorchCommHCCL>(); },
+        torch::comms::TORCHCOMM_BACKEND_ABI_VERSION);
   }
 };
 

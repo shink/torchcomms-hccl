@@ -12,9 +12,6 @@
 
 namespace torch::comms {
 
-// HCCL 操作结果类型别名
-using HcclResult = hcclResult;
-
 /// HCCL API 抽象接口
 /// 设计目的与 torchcomms 的 NcclApi 一致:将 HCCL C API 调用抽象为可注入接口,
 /// 使后端逻辑可在无 NPU 环境下通过 mock 进行单元测试。
