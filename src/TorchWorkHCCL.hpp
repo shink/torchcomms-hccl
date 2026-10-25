@@ -13,11 +13,11 @@
 
 namespace torch::comms {
 
-/// HCCL 后端的异步工作句柄
+/// \brief HCCL 后端的异步工作句柄
 /// 通过同步 NPU 流来完成 wait 语义。
 class TorchWorkHCCL : public TorchWork {
  public:
-  /// 构造函数
+  /// \brief 构造函数
   /// \param stream HCCL 操作所在的 NPU 流
   /// \param timeout 操作超时时间(暂未使用，预留)
   /// \param inputTensors 异步操作时持有的输入张量引用，防止提前释放
@@ -28,10 +28,11 @@ class TorchWorkHCCL : public TorchWork {
 
   ~TorchWorkHCCL() override = default;
 
-  /// 阻塞当前流直到操作完成
+  /// \brief 阻塞当前流直到操作完成
+  /// \throw std::runtime_error 流同步失败时抛出
   void wait() override;
 
-  /// 阻塞 CPU 线程直到操作完成
+  /// \brief 阻塞 CPU 线程直到操作完成
   void waitBlocking() override;
 
  private:

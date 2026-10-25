@@ -57,6 +57,7 @@ disable = [
     "import-outside-toplevel",
     "wrong-import-position",
     "import-self",
+    "import-error",
     "line-too-long",
     "too-many-locals",
 ]

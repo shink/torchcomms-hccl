@@ -12,7 +12,7 @@
 
 namespace {
 
-/// 静态注册器：模块加载时将 HCCL 后端注册到 TorchCommFactory
+/// \brief 静态注册器：模块加载时将 HCCL 后端注册到 TorchCommFactory
 /// 通过 entry_points("torchcomms.backends") 发现并 import 此模块
 class HCCLBackendRegister {
  public:

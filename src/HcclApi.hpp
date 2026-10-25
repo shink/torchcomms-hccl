@@ -12,7 +12,7 @@
 
 namespace torch::comms {
 
-/// HCCL API 抽象接口
+/// \brief HCCL API 抽象接口
 /// 设计目的与 torchcomms 的 NcclApi 一致：将 HCCL C API 调用抽象为可注入接口，
 /// 使后端逻辑可在无 NPU 环境下通过 mock 进行单元测试。
 class HcclApi {
@@ -20,23 +20,43 @@ class HcclApi {
   virtual ~HcclApi() = default;
 
   // --- Bootstrap ---
-  /// rank 0 生成 RootInfo，用于广播给其他 rank
+  /// \brief rank 0 生成 RootInfo，用于广播给其他 rank
+  /// \param rootInfo 输出的 RootInfo
+  /// \return HCCL 结果码
   virtual HcclResult getRootInfo(HcclRootInfo* rootInfo) = 0;
-  /// 根据 RootInfo 初始化通信器
+  /// \brief 根据 RootInfo 初始化通信器
+  /// \param nRanks 通信域 rank 数量
+  /// \param rootInfo RootInfo
+  /// \param rank 当前 rank
+  /// \param comm 输出的通信器
+  /// \return HCCL 结果码
   virtual HcclResult commInitRootInfo(
       uint32_t nRanks,
       const HcclRootInfo* rootInfo,
       uint32_t rank,
       HcclComm* comm) = 0;
-  /// 销毁通信器
+  /// \brief 销毁通信器
+  /// \param comm 通信器
+  /// \return HCCL 结果码
   virtual HcclResult commDestroy(HcclComm comm) = 0;
-  /// 查询异步错误状态
+  /// \brief 查询异步错误状态
+  /// \param comm 通信器
+  /// \param asyncError 输出的异步错误码
+  /// \return HCCL 结果码
   virtual HcclResult getCommAsyncError(
       HcclComm comm,
       HcclResult* asyncError) = 0;
 
   // --- 集合通信 ---
-  /// AllReduce：对 sendbuff/recvbuff 执行归约
+  /// \brief AllReduce：对 sendbuff/recvbuff 执行归约
+  /// \param sendbuff 发送缓冲区
+  /// \param recvbuff 接收缓冲区
+  /// \param count 元素个数
+  /// \param dataType 数据类型
+  /// \param op 归约操作
+  /// \param comm 通信器
+  /// \param stream NPU 流
+  /// \return HCCL 结果码
   virtual HcclResult allReduce(
       void* sendbuff,
       void* recvbuff,
@@ -47,10 +67,13 @@ class HcclApi {
       aclrtStream stream) = 0;
 
   // --- 错误处理 ---
+  /// \brief 获取错误码对应的描述字符串
+  /// \param result 错误码
+  /// \return 错误描述字符串
   virtual const char* getErrorString(HcclResult result) = 0;
 };
 
-/// 默认实现：直接调用 HCCL 库函数
+/// \brief 默认实现：直接调用 HCCL 库函数
 class DefaultHcclApi : public HcclApi {
  public:
   HcclResult getRootInfo(HcclRootInfo* rootInfo) override {

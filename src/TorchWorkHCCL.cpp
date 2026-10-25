@@ -35,7 +35,7 @@ void TorchWorkHCCL::wait() {
 }
 
 void TorchWorkHCCL::waitBlocking() {
-  // 对于 HCCL,wait() 本身已是主机阻塞语义
+  // 对于 HCCL，wait() 本身已是主机阻塞语义
   wait();
 }
 
