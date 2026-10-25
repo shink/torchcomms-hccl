@@ -91,4 +91,5 @@ class build_ext(build_ext_orig):
 
 setup(
     ext_modules=[CMakeExtension("torchcomms_hccl._comms_hccl")],
+    cmdclass={"build_ext": build_ext},
 )
