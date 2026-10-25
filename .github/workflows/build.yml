@@ -25,7 +25,7 @@ jobs:
 
       - name: Install PyTorch (CPU)
         run: |
-          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install torch==2.12.0 --index-url https://download.pytorch.org/whl/cpu
 
       - name: Install build deps
         run: pip install setuptools wheel cmake
@@ -34,7 +34,7 @@ jobs:
         run: |
           python setup.py --version
 
-      - name: Run Python unit tests (no NPU needed)
+      - name: Run Python unit tests
         run: |
           pip install pytest
           python -m pytest tests/test_import.py -v

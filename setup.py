@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
-# Copyright (c) torchcomms-hccl contributors
+# Copyright (c) CANN HCCL Development Team
 #
-# setup.py:基于 CMake 构建后端扩展模块
+# setup.py：基于 CMake 构建后端扩展模块
 
 import os
 import pathlib
-import shlex
 import subprocess
 import sys
 
@@ -14,8 +13,15 @@ from setuptools.command.build_ext import build_ext as build_ext_orig
 
 
 def ensure_submodules():
-    """确保 git submodule 已初始化和更新"""
+    """确保 git submodule 已初始化和更新
+
+    从 sdist(tar 包)安装时不存在 .git 目录，此时所需的 third_party 头文件
+    已通过 MANIFEST.in 直接打包进 sdist，无需(也无法)初始化 submodule。
+    """
     root = pathlib.Path(__file__).resolve().parent
+    if not (root / ".git").exists():
+        # 从 sdist 安装：头文件已随包分发，跳过 submodule 初始化。
+        return
     gitmodules = root / ".gitmodules"
     if not gitmodules.exists():
         return
@@ -43,7 +49,7 @@ ensure_submodules()
 
 
 class CMakeExtension(Extension):
-    """自定义 Extension,不使用 setuptools 默认的构建流程"""
+    """自定义 Extension，不使用 setuptools 默认的构建流程"""
 
     def __init__(self, name):
         super().__init__(name, sources=[])

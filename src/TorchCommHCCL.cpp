@@ -1,4 +1,4 @@
-// Copyright (c) torchcomms-hccl contributors
+// Copyright (c) CANN HCCL Development Team
 //
 // HCCL 后端实现
 
@@ -33,17 +33,19 @@ TorchCommHCCL::~TorchCommHCCL() {
 // ============================================================
 
 [[noreturn]] void TorchCommHCCL::throwNotSupported(const char* opName) {
-  throw std::runtime_error(std::string("HCCL backend does not support '") +
-                           opName +
-                           "' yet. Only all_reduce is currently implemented.");
+  throw std::runtime_error(
+      std::string("HCCL backend does not support '") + opName +
+      "' yet. Only all_reduce is currently implemented.");
 }
 
 // ============================================================
-// 生命周期: init / finalize
+// 生命周期：init / finalize
 // ============================================================
 
-void TorchCommHCCL::init(at::Device device, const std::string& name,
-                         const CommOptions& options) {
+void TorchCommHCCL::init(
+    at::Device device,
+    const std::string& name,
+    const CommOptions& options) {
   device_ = device;
   name_ = name;
   options_ = options;
@@ -55,23 +57,28 @@ void TorchCommHCCL::init(at::Device device, const std::string& name,
 
   // 2. 设置 NPU 设备
   auto aclErr = aclrtSetDevice(device_.index());
-  TORCH_CHECK(aclErr == ACL_SUCCESS,
-              "HCCL init: aclrtSetDevice failed, error=", aclErr);
+  TORCH_CHECK(
+      aclErr == ACL_SUCCESS,
+      "HCCL init: aclrtSetDevice failed, error=",
+      aclErr);
 
   // 3. 创建内部 NPU 流(用于异步操作)
   aclErr = aclrtCreateStream(&internal_stream_);
-  TORCH_CHECK(aclErr == ACL_SUCCESS,
-              "HCCL init: aclrtCreateStream failed, error=", aclErr);
+  TORCH_CHECK(
+      aclErr == ACL_SUCCESS,
+      "HCCL init: aclrtCreateStream failed, error=",
+      aclErr);
 
-  // 4. 通过 Store 交换 RootInfo 并初始化通信器
-  //    若 options.store 为空,自动创建 TCPStore
+  // 4. 通过 Store 交换 RootInfo 并初始化通信域
+  //    若 options.store 为空，自动创建 TCPStore
   c10::intrusive_ptr<c10d::Store> store = options_.store;
   if (!store) {
     const char* masterAddr = std::getenv("MASTER_ADDR");
     const char* masterPort = std::getenv("MASTER_PORT");
-    TORCH_CHECK(masterAddr != nullptr && masterPort != nullptr,
-                "HCCL init: MASTER_ADDR and MASTER_PORT must be set, "
-                "or a store must be provided via CommOptions.store");
+    TORCH_CHECK(
+        masterAddr != nullptr && masterPort != nullptr,
+        "HCCL init: MASTER_ADDR and MASTER_PORT must be set, "
+        "or a store must be provided via CommOptions.store");
     c10d::TCPStoreOptions opts;
     opts.port = static_cast<std::uint16_t>(std::stoi(masterPort));
     opts.numWorkers = static_cast<std::size_t>(comm_size_);
@@ -85,13 +92,16 @@ void TorchCommHCCL::init(at::Device device, const std::string& name,
   std::string key = "hccl_root_info";
   exchangeRootInfo(*prefixStore, key, rootInfo, options_.timeout);
 
-  // 5. 创建 HCCL 通信器
-  auto hcclErr =
-      hccl_api_->commInitRootInfo(static_cast<uint32_t>(comm_size_), &rootInfo,
-                                  static_cast<uint32_t>(rank_), &hccl_comm_);
-  TORCH_CHECK(hcclErr == HCCL_SUCCESS,
-              "HCCL init: HcclCommInitRootInfo failed: ",
-              hccl_api_->getErrorString(hcclErr));
+  // 5. 创建 HCCL 通信域
+  auto hcclErr = hccl_api_->commInitRootInfo(
+      static_cast<uint32_t>(comm_size_),
+      &rootInfo,
+      static_cast<uint32_t>(rank_),
+      &hccl_comm_);
+  TORCH_CHECK(
+      hcclErr == HCCL_SUCCESS,
+      "HCCL init: HcclCommInitRootInfo failed: ",
+      hccl_api_->getErrorString(hcclErr));
 
   LOG(INFO) << "HCCL backend initialized: rank=" << rank_
             << " size=" << comm_size_ << " name=" << name_;
@@ -99,7 +109,7 @@ void TorchCommHCCL::init(at::Device device, const std::string& name,
 
 void TorchCommHCCL::finalize() {
   if (finalized_.exchange(true)) {
-    return;  // 已 finalize,避免重复调用
+    return; // 已 finalize，避免重复调用
   }
 
   if (hccl_comm_ != nullptr) {
@@ -129,7 +139,7 @@ std::pair<int, int> TorchCommHCCL::getRankAndSize(const CommOptions& options) {
   }
 
   // TODO: 从 Store 中查询(需要 Store 支持 add/get 原子计数)
-  // 当前简化实现:默认单进程
+  // 当前简化实现：默认单进程
   return {0, 1};
 }
 
@@ -137,14 +147,18 @@ std::pair<int, int> TorchCommHCCL::getRankAndSize(const CommOptions& options) {
 // RootInfo 交换(Bootstrap)
 // ============================================================
 
-void TorchCommHCCL::exchangeRootInfo(c10d::Store& store, const std::string& key,
-                                     HcclRootInfo& rootInfo,
-                                     std::chrono::milliseconds timeout) {
+void TorchCommHCCL::exchangeRootInfo(
+    c10d::Store& store,
+    const std::string& key,
+    HcclRootInfo& rootInfo,
+    std::chrono::milliseconds timeout) {
   if (rank_ == 0) {
     // rank 0 生成 RootInfo
     auto err = hccl_api_->getRootInfo(&rootInfo);
-    TORCH_CHECK(err == HCCL_SUCCESS, "HCCL: HcclGetRootInfo failed: ",
-                hccl_api_->getErrorString(err));
+    TORCH_CHECK(
+        err == HCCL_SUCCESS,
+        "HCCL: HcclGetRootInfo failed: ",
+        hccl_api_->getErrorString(err));
 
     // 序列化并写入 Store
     std::vector<uint8_t> buf(
@@ -155,9 +169,12 @@ void TorchCommHCCL::exchangeRootInfo(c10d::Store& store, const std::string& key,
     // 其他 rank 等待并读取 RootInfo
     store.wait({key}, timeout);
     auto val = store.get(key);
-    TORCH_CHECK(val.size() == sizeof(rootInfo),
-                "HCCL: RootInfo size mismatch from store: got ", val.size(),
-                " expected ", sizeof(rootInfo));
+    TORCH_CHECK(
+        val.size() == sizeof(rootInfo),
+        "HCCL: RootInfo size mismatch from store: got ",
+        val.size(),
+        " expected ",
+        sizeof(rootInfo));
     std::memcpy(&rootInfo, val.data(), sizeof(rootInfo));
   }
 }
@@ -202,9 +219,10 @@ HcclReduceOp TorchCommHCCL::getHcclReduceOp(const ReduceOp& op) {
     case ReduceOp::RedOpType::MIN:
       return HCCL_REDUCE_MIN;
     default:
-      TORCH_CHECK(false,
-                  "HCCL: unsupported reduce op. "
-                  "HCCL only supports SUM, PRODUCT, MAX, MIN.");
+      TORCH_CHECK(
+          false,
+          "HCCL: unsupported reduce op. "
+          "HCCL only supports SUM, PRODUCT, MAX, MIN.");
   }
 }
 
@@ -216,26 +234,29 @@ aclrtStream TorchCommHCCL::getOperationStream(bool async_op) {
   if (async_op) {
     return internal_stream_;
   }
-  // 同步模式:使用当前 NPU 流,使操作与用户的计算流同步
+  // 同步模式：使用当前 NPU 流，使操作与用户的计算流同步
   aclrtStream current = nullptr;
-  // aclrtGetCurrentStream 在部分 CANN 版本不可用,回退到内部流 + 同步等待
-  // 此处使用内部流,wait() 会调用 aclrtSynchronizeStream 保证同步语义
+  // aclrtGetCurrentStream 在部分 CANN 版本不可用，回退到内部流 + 同步等待
+  // 此处使用内部流，wait() 会调用 aclrtSynchronizeStream 保证同步语义
   return internal_stream_;
 }
 
 // ============================================================
-// AllReduce:当前唯一实现的集合操作
+// AllReduce：当前唯一实现的集合操作
 // ============================================================
 
 c10::intrusive_ptr<TorchWork> TorchCommHCCL::all_reduce(
-    at::Tensor& tensor, const ReduceOp& op, bool async_op,
+    at::Tensor& tensor,
+    const ReduceOp& op,
+    bool async_op,
     const AllReduceOptions& options) {
   // 前置校验
   TORCH_CHECK(hccl_comm_ != nullptr, "HCCL: communicator not initialized");
-  TORCH_CHECK(tensor.is_contiguous(),
-              "HCCL all_reduce: tensor must be contiguous");
-  TORCH_CHECK(tensor.device().type() == device_.type(),
-              "HCCL all_reduce: tensor device mismatch");
+  TORCH_CHECK(
+      tensor.is_contiguous(), "HCCL all_reduce: tensor must be contiguous");
+  TORCH_CHECK(
+      tensor.device().type() == device_.type(),
+      "HCCL all_reduce: tensor device mismatch");
 
   // 类型映射
   auto hcclDtype = getHcclDataType(tensor.scalar_type());
@@ -244,25 +265,33 @@ c10::intrusive_ptr<TorchWork> TorchCommHCCL::all_reduce(
   // 获取操作流
   aclrtStream stream = getOperationStream(async_op);
 
-  // 调用 HCCL AllReduce(原地操作:sendbuf == recvbuf)
-  auto err = hccl_api_->allReduce(tensor.data_ptr(), tensor.data_ptr(),
-                                  static_cast<uint64_t>(tensor.numel()),
-                                  hcclDtype, hcclRedOp, hccl_comm_, stream);
-  TORCH_CHECK(err == HCCL_SUCCESS,
-              "HCCL all_reduce failed: ", hccl_api_->getErrorString(err));
+  // 调用 HCCL AllReduce(原地操作：sendbuf == recvbuf)
+  auto err = hccl_api_->allReduce(
+      tensor.data_ptr(),
+      tensor.data_ptr(),
+      static_cast<uint64_t>(tensor.numel()),
+      hcclDtype,
+      hcclRedOp,
+      hccl_comm_,
+      stream);
+  TORCH_CHECK(
+      err == HCCL_SUCCESS,
+      "HCCL all_reduce failed: ",
+      hccl_api_->getErrorString(err));
 
   // 创建 Work 句柄
-  // 异步操作时持有张量引用,防止提前释放
+  // 异步操作时持有张量引用，防止提前释放
   auto timeout = options.timeout;
   if (timeout == std::chrono::milliseconds(0)) {
     timeout = options_.timeout;
   }
 
   auto work = c10::make_intrusive<TorchWorkHCCL>(
-      stream, timeout,
+      stream,
+      timeout,
       async_op ? std::vector<at::Tensor>{tensor} : std::vector<at::Tensor>{});
 
-  // 同步模式:立即等待完成
+  // 同步模式：立即等待完成
   if (!async_op) {
     work->wait();
   }
@@ -271,13 +300,14 @@ c10::intrusive_ptr<TorchWork> TorchCommHCCL::all_reduce(
 }
 
 // ============================================================
-// split:暂不支持(需要 HCCL commSplit,后续扩展)
+// split：暂不支持(需要 HCCL commSplit，后续扩展)
 // ============================================================
 
 std::shared_ptr<TorchCommBackend> TorchCommHCCL::split(
-    const std::vector<int>& ranks, const std::string& name,
+    const std::vector<int>& ranks,
+    const std::string& name,
     const CommOptions& options) {
   throw std::runtime_error("HCCL backend: split is not yet supported");
 }
 
-}  // namespace torch::comms
+} // namespace torch::comms

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.22)
 project(torchcomms_hccl LANGUAGES C CXX)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
@@ -34,13 +34,16 @@ set(TORCH_LIB_DIR "${TORCH_PKG_DIR}/lib")
 message(STATUS "PyTorch package: ${TORCH_PKG_DIR}")
 
 # ====================================================================
-# 查找 torchcomms (从已安装的 torchcomms 包获取 libtorchcomms.so)
-# 头文件从 submodule 获取,库文件从已安装的包获取
+# 查找 torchcomms（头文件从 submodule 获取，库文件从已安装的包获取）
 # ====================================================================
 
+# 用 importlib.util.find_spec 定位 torchcomms 包，而不是直接 import:
+# import torchcomms 会触发其加载 libtorchcomms.so，而后者依赖运行期的
+# CUDA/CANN 库，在无 CANN/无 CUDA 的构建容器中无法加载。这里只需要
+# libtorchcomms.so 的路径用于链接，并不需要真正加载它。
 execute_process(
     COMMAND ${Python3_EXECUTABLE} -c
-    "import os,sys,io;old=sys.stdout;sys.stdout=io.StringIO();import torchcomms;sys.stdout=old;print(os.path.dirname(torchcomms.__file__))"
+    "import importlib.util,os,sys; s=importlib.util.find_spec('torchcomms'); (s is None) and sys.exit(1); print(os.path.dirname(s.origin))"
     OUTPUT_VARIABLE TORCHCOMMS_PKG_DIR
     OUTPUT_STRIP_TRAILING_WHITESPACE
     RESULT_VARIABLE TORCHCOMMS_FIND_RESULT
@@ -90,7 +93,7 @@ execute_process(
 )
 
 # ====================================================================
-# CANN: 优先使用已安装的 CANN Toolkit,否则使用 submodule + stub 库
+# CANN: 优先使用已安装的 CANN Toolkit，否则使用 submodule + stub 库
 # ====================================================================
 
 set(ASCEND_HOME_PATH "$ENV{ASCEND_HOME_PATH}")
@@ -105,7 +108,7 @@ if(ASCEND_HOME_PATH AND EXISTS "${ASCEND_HOME_PATH}/include/hccl/hccl.h")
 else()
     # --- 方式 2: 使用 submodule 头文件 + stub 库 ---
     # Mode 2: Use submodule headers + stub libraries (link-only)
-    # 编译期用 submodule 头文件,链接期用 stub .so (运行期 dlopen 真实 CANN)
+    # 编译期用 submodule 头文件，链接期用 stub .so (运行期 dlopen 真实 CANN)
     set(CANN_INCLUDE_DIR
         "${THIRD_PARTY_DIR}/hccl/include"        # <hccl.h>, <hccl_mc2.h>
         "${THIRD_PARTY_DIR}/hcomm/include"        # <hccl/hccl_types.h>, <hccl/hccl_comm.h> 等
@@ -114,7 +117,7 @@ else()
     )
     message(STATUS "CANN (submodule + stubs): headers from ${THIRD_PARTY_DIR}")
 
-    # 构建 stub 共享库 (仅用于链接期符号解析,不打包进 wheel)
+    # 构建 stub 共享库 (仅用于链接期符号解析，不打包进 wheel)
     add_library(hccl_stub SHARED ${STUBS_DIR}/hccl_stub.c)
     set_target_properties(hccl_stub PROPERTIES
         OUTPUT_NAME "hccl"
@@ -127,7 +130,7 @@ else()
         PREFIX "lib"
     )
 
-    # stub 库输出到 build 目录,链接时使用完整路径
+    # stub 库输出到 build 目录，链接时使用完整路径
     set(HCCL_LIB "hccl_stub")
     set(ACL_LIB "acl_stub")
 endif()

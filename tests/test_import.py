@@ -1,6 +1,6 @@
-"""导入测试:验证 torchcomms_hccl 包结构正确。
+"""导入测试：验证 torchcomms_hccl 包结构正确。
 
-此测试不需要 NPU 硬件,仅验证 Python 包可被发现。
+此测试不需要 NPU 硬件，仅验证 Python 包可被发现。
 实际 C++ 扩展加载需要 torchcomms 和 CANN 环境。
 """
 
@@ -13,7 +13,7 @@ def test_package_discoverable():
         from importlib.metadata import entry_points
         eps = entry_points(group="torchcomms.backends", name="hccl")
         assert eps is not None
-        # 不断言 eps 非空,因为包可能尚未安装
+        # 不断言 eps 非空，因为包可能尚未安装
     except Exception:
         # 在未安装环境下跳过
         pytest.skip("torchcomms.backends entry_points not available")

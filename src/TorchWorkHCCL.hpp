@@ -1,6 +1,6 @@
-// Copyright (c) torchcomms-hccl contributors
+// Copyright (c) CANN HCCL Development Team
 //
-// 异步工作句柄:HCCL 后端的 TorchWork 实现
+// 异步工作句柄：HCCL 后端的 TorchWork 实现
 
 #pragma once
 
@@ -19,10 +19,12 @@ class TorchWorkHCCL : public TorchWork {
  public:
   /// 构造函数
   /// \param stream HCCL 操作所在的 NPU 流
-  /// \param timeout 操作超时时间(暂未使用,预留)
-  /// \param inputTensors 异步操作时持有的输入张量引用,防止提前释放
-  TorchWorkHCCL(aclrtStream stream, std::chrono::milliseconds timeout,
-                std::vector<at::Tensor> inputTensors = {});
+  /// \param timeout 操作超时时间(暂未使用，预留)
+  /// \param inputTensors 异步操作时持有的输入张量引用，防止提前释放
+  TorchWorkHCCL(
+      aclrtStream stream,
+      std::chrono::milliseconds timeout,
+      std::vector<at::Tensor> inputTensors = {});
 
   ~TorchWorkHCCL() override = default;
 
@@ -35,7 +37,7 @@ class TorchWorkHCCL : public TorchWork {
  private:
   aclrtStream stream_;
   std::chrono::milliseconds timeout_;
-  std::vector<at::Tensor> inputTensors_;  // 持有引用,防止异步期间张量被释放
+  std::vector<at::Tensor> inputTensors_; // 持有引用，防止异步期间张量被释放
 };
 
-}  // namespace torch::comms
+} // namespace torch::comms

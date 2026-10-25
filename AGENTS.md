@@ -19,14 +19,13 @@ Understand this before touching `src/`:
   `libtorchcomms.so` via `ctypes.CDLL(..., RTLD_LOCAL)` so the C++ extension can
   resolve `TorchCommFactory` symbols, then imports `_comms_hccl`.
 - `src/module.cpp` has a file-scope static initializer that calls
-  `TorchCommFactory::get().register_backend("hccl", factory,
-  TORCHCOMM_BACKEND_ABI_VERSION)`. The pybind11 module exports **nothing** —
-  registration is a side effect of `.so` load. Do not move registration into
-  `PYBIND11_MODULE`; it must run at static-init time.
+  `TorchCommFactory::get().register_backend("hccl", factory)`. The pybind11
+  module exports **nothing** — registration is a side effect of `.so` load. Do
+  not move registration into `PYBIND11_MODULE`; it must run at static-init time.
 - torchcomms headers come from the git submodule at
   `third_party/torchcomms/` (tracked at `comms/torchcomms/`). The contract
-  this plugin compiles against is the submodule's `main` branch. Do not
-  substitute headers from a different torchcomms version.
+  this plugin compiles against is the submodule's `v0.3.1` tag (ABI `1.1`).
+  Do not substitute headers from a different torchcomms version.
 
 ## Git submodules (CANN + torchcomms)
 
@@ -34,10 +33,10 @@ The build uses four git submodules under `third_party/`:
 
 | Submodule | URL | Branch | Provides |
 |-----------|-----|--------|----------|
-| `third_party/hccl` | `gitcode.com/cann/hccl` | master | `<hccl.h>`, `<hccl_mc2.h>` |
-| `third_party/hcomm` | `gitcode.com/cann/hcomm` | master | `<hccl/hccl_types.h>`, `<hccl/hccl_comm.h>`, `<hccl/hccl_res.h>`, `<hccl/hccl_launch.h>` |
-| `third_party/runtime` | `gitcode.com/cann/runtime` | master | `<acl/acl.h>`, `<acl/acl_rt.h>`, `<acl/acl_base_rt.h>` |
-| `third_party/torchcomms` | `github.com/meta-pytorch/torchcomms` | main | `<comms/torchcomms/*.hpp>` |
+| `third_party/hccl` | `gitcode.com/cann/hccl` | `9.2.0` | `<hccl.h>`, `<hccl_mc2.h>` |
+| `third_party/hcomm` | `gitcode.com/cann/hcomm` | `9.2.0` | `<hccl/hccl_types.h>`, `<hccl/hccl_comm.h>`, `<hccl/hccl_res.h>`, `<hccl/hccl_launch.h>` |
+| `third_party/runtime` | `gitcode.com/cann/runtime` | `9.2.0` | `<acl/acl.h>`, `<acl/acl_rt.h>`, `<acl/acl_base_rt.h>` |
+| `third_party/torchcomms` | `github.com/meta-pytorch/torchcomms` | `v0.3.1` (tag) | `<comms/torchcomms/*.hpp>` |
 
 After cloning: `git submodule update --init --recursive`
 
@@ -105,7 +104,7 @@ box — never trust CI green as proof of runtime correctness.
 
 ## Style
 
-- **C++**: C++20, Google clang-format, `ColumnLimit: 80`, `IndentWidth: 2`,
+- **C++**: C++17, Google clang-format, `ColumnLimit: 80`, `IndentWidth: 2`,
   `PointerAlignment: Left`, `SortIncludes: true`. Config in `.clang-format`.
   CI hard-fails on format drift — run clang-format before committing.
 - **Python**: pylint max-line-length 88. `_comms_hccl` is in the ignore list

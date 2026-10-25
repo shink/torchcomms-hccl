@@ -1,12 +1,15 @@
 [submodule "third_party/runtime"]
 	path = third_party/runtime
 	url = https://gitcode.com/cann/runtime.git
+	branch = 9.2.0
 [submodule "third_party/hccl"]
 	path = third_party/hccl
 	url = https://gitcode.com/cann/hccl.git
+	branch = 9.2.0
 [submodule "third_party/hcomm"]
 	path = third_party/hcomm
 	url = https://gitcode.com/cann/hcomm.git
+	branch = 9.2.0
 [submodule "third_party/torchcomms"]
 	path = third_party/torchcomms
 	url = https://github.com/meta-pytorch/torchcomms.git

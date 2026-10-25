@@ -1,16 +1,9 @@
-// Copyright (c) torchcomms-hccl contributors
+// Copyright (c) CANN HCCL Development Team
 //
-// HCCL stub library: provides link-time symbols for libhccl.so so the
-// extension can be built without a CANN toolkit installation. At runtime
-// the dynamic linker loads the real libhccl.so from the installed CANN.
-//
-// Only the 5 HCCL functions actually called by this project are stubbed.
+// libhcomm.so/libhccl.so 桩实现，避免编译时依赖 CANN Toolkit 包
 
 #include <stddef.h>
 #include <stdint.h>
-
-// --- Type stubs (must match hccl_types.h / hccl_comm.h) ---
-// 扮桩类型定义,必须与 CANN 安装包中的 hccl_types.h 一致
 
 typedef int HcclResult;
 typedef void *HcclComm;
@@ -37,8 +30,6 @@ typedef enum {
     HCCL_DATA_TYPE_BFP16 = 11,
 } HcclDataType;
 
-// HCCL_ROOT_INFO_BYTES = 4108 (must match CANN exactly)
-// 必须与 CANN 安装包中 hccl_types.h 的 HCCL_ROOT_INFO_BYTES 完全一致
 #define HCCL_ROOT_INFO_BYTES 4108
 typedef struct HcclRootInfoDef {
     char internal[HCCL_ROOT_INFO_BYTES];
@@ -47,9 +38,6 @@ typedef struct HcclRootInfoDef {
 typedef void *aclrtStream;
 
 #define HCCL_SUCCESS 0
-
-// --- Stub implementations (return error, never called at runtime) ---
-// 桩实现:返回错误码,运行时不会被调用
 
 HcclResult HcclGetRootInfo(HcclRootInfo *rootInfo) {
   (void)rootInfo;

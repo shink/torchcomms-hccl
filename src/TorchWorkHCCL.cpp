@@ -1,4 +1,4 @@
-// Copyright (c) torchcomms-hccl contributors
+// Copyright (c) CANN HCCL Development Team
 //
 // 异步工作句柄实现
 
@@ -8,13 +8,14 @@
 
 namespace torch::comms {
 
-TorchWorkHCCL::TorchWorkHCCL(aclrtStream stream,
-                             std::chrono::milliseconds timeout,
-                             std::vector<at::Tensor> inputTensors)
+TorchWorkHCCL::TorchWorkHCCL(
+    aclrtStream stream,
+    std::chrono::milliseconds timeout,
+    std::vector<at::Tensor> inputTensors)
     : stream_(stream),
       timeout_(timeout),
       inputTensors_(std::move(inputTensors)) {
-  // 构造时标记为进行中,等待 wait() 后转为完成
+  // 构造时标记为进行中，等待 wait() 后转为完成
   setStatus(WorkStatus::INPROGRESS);
 }
 
@@ -38,4 +39,4 @@ void TorchWorkHCCL::waitBlocking() {
   wait();
 }
 
-}  // namespace torch::comms
+} // namespace torch::comms

@@ -1,17 +1,29 @@
 include CMakeLists.txt
 include LICENSE
 include README.md
+include README_zh.md
+include requirements.txt
+include requirements_dev.txt
+include build.sh
 include setup.py
 include pyproject.toml
+include .clang-format
 
-# Git submodule 配置
+# Git submodule 配置(供从 git 检出构建时初始化 submodule 使用)
 include .gitmodules
 
 # C++ 源码
 recursive-include src *.hpp *.cpp *.h
 
-# Stub 库源码 (用于无 CANN 环境下编译)
+# CANN Stub 源码
 recursive-include third_party/stubs *.c
 
-# sdist 不包含 submodule 内容 (用户 clone 时通过 git submodule init 获取)
-# wheel 构建时直接从源码树读取 submodule 头文件
+recursive-include third_party/hccl/include *.h *.hpp
+recursive-include third_party/hcomm/include *.h *.hpp
+recursive-include third_party/hcomm/test/stub/depends/include *.h *.hpp
+recursive-include third_party/runtime/include/external *.h *.hpp
+recursive-include third_party/torchcomms/comms/torchcomms *.hpp
+
+# 排除杂项
+global-exclude *.pyc *.pyo
+prune .github

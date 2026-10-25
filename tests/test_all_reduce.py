@@ -1,6 +1,6 @@
-"""AllReduce 集成测试:需要 NPU 硬件 + CANN 环境。
+"""AllReduce 集成测试：需要 NPU 硬件 + CANN 环境。
 
-运行方式:
+运行方式：
     torchrun --nproc_per_node=2 tests/test_all_reduce.py
 """
 
@@ -41,7 +41,7 @@ def test_all_reduce_basic():
     # AllReduce SUM
     comm.all_reduce(tensor, torchcomms.ReduceOp.SUM, async_op=False)
 
-    # 验证结果: sum(1..world_size) = world_size * (world_size + 1) / 2
+    # 验证结果：sum(1..world_size) = world_size * (world_size + 1) / 2
     expected = world_size * (world_size + 1) / 2
     assert tensor[0].item() == pytest.approx(expected)
 
@@ -78,7 +78,7 @@ def test_all_reduce_async():
 
 
 if __name__ == "__main__":
-    # 直接运行:需要设置 RANK 和 WORLD_SIZE 环境变量
+    # 直接运行：需要设置 RANK 和 WORLD_SIZE 环境变量
     os.environ.setdefault("RANK", "0")
     os.environ.setdefault("WORLD_SIZE", "1")
     test_all_reduce_basic()
