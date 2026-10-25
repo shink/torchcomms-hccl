@@ -24,9 +24,11 @@
 
 namespace torch::comms {
 
-/// \brief CANN HCCL 后端实现
-/// 通过继承 TorchCommBackend，将 HCCL 库接入 torchcomms 框架。
-/// 用户通过 torchcomms.new_comm("hccl", device) 创建实例。
+/**
+ * @brief CANN HCCL 后端实现
+ * 通过继承 TorchCommBackend，将 HCCL 库接入 torchcomms 框架。
+ * 用户通过 torchcomms.new_comm("hccl", device) 创建实例。
+ */
 class TorchCommHCCL : public TorchCommBackend {
  public:
   static constexpr std::string_view kBackendName = "hccl";
@@ -201,40 +203,58 @@ class TorchCommHCCL : public TorchCommBackend {
   }
 
  private:
-  /// \brief 抛出"操作未支持"异常
-  /// \param opName 操作名称
-  /// \throw std::runtime_error 总是抛出
+  /**
+   * @brief 抛出"操作未支持"异常
+   *
+   * @param opName 操作名称
+   * @throws std::runtime_error 总是抛出
+   */
   [[noreturn]] static void throwNotSupported(const char* opName);
 
-  /// \brief 从环境变量或 Store 获取 rank 和 world_size
-  /// \param options 通信选项
-  /// \return (rank, world_size)
+  /**
+   * @brief 从环境变量或 Store 获取 rank 和 world_size
+   *
+   * @param options 通信选项
+   * @return (rank, world_size)
+   */
   std::pair<int, int> getRankAndSize(const CommOptions& options);
 
-  /// \brief 通过 Store 交换 HcclRootInfo(rank 0 生成，广播给其他 rank)
-  /// \param store 分布式 Store
-  /// \param key Store 键
-  /// \param rootInfo 输入输出的 RootInfo
-  /// \param timeout 等待超时
+  /**
+   * @brief 通过 Store 交换 HcclRootInfo(rank 0 生成，广播给其他 rank)
+   *
+   * @param store 分布式 Store
+   * @param key Store 键
+   * @param rootInfo 输入输出的 RootInfo
+   * @param timeout 等待超时
+   */
   void exchangeRootInfo(
       c10d::Store& store,
       const std::string& key,
       HcclRootInfo& rootInfo,
       std::chrono::milliseconds timeout);
 
-  /// \brief PyTorch ScalarType 映射为 HCCL DataType
-  /// \param type PyTorch 标量类型
-  /// \return HCCL 数据类型
+  /**
+   * @brief PyTorch ScalarType 映射为 HCCL DataType
+   *
+   * @param type PyTorch 标量类型
+   * @return HCCL 数据类型
+   */
   static HcclDataType getHcclDataType(at::ScalarType type);
 
-  /// \brief torchcomms ReduceOp 映射为 HCCL ReduceOp
-  /// \param op torchcomms 归约操作
-  /// \return HCCL 归约操作
+  /**
+   * @brief torchcomms ReduceOp 映射为 HCCL ReduceOp
+   *
+   * @param op torchcomms 归约操作
+   * @return HCCL 归约操作
+   */
   static HcclReduceOp getHcclReduceOp(const ReduceOp& op);
 
-  /// \brief 获取操作流：异步用内部流，同步用当前流
-  /// \param async_op 是否异步
-  /// \return NPU 流
+  /**
+   * @brief 获取操作流：异步用内部流，同步用当前流
+   *
+   * @param async_op 是否异步
+   * @return NPU 流
+   */
   aclrtStream getOperationStream(bool async_op);
 
   // --- 成员变量 ---
