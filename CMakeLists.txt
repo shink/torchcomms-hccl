@@ -17,7 +17,7 @@ set(STUBS_DIR ${THIRD_PARTY_DIR}/stubs)
 # 查找 Python
 # ====================================================================
 
-find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+find_package(Python3 COMPONENTS Interpreter Development.Module REQUIRED)
 
 # ====================================================================
 # 查找 PyTorch (从已安装的 torch 包获取 include/lib 路径)
@@ -166,6 +166,7 @@ target_include_directories(torchcomms_hccl PRIVATE
     ${TORCH_INCLUDE_DIR}/torch/csrc/api/include
     ${CANN_INCLUDE_DIR}
     ${TORCH_NPU_INCLUDE_DIR}
+    ${Python3_INCLUDE_DIRS}
 )
 
 if(PYBIND11_INCLUDE_DIR)
