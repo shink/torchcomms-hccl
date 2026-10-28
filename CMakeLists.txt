@@ -25,10 +25,14 @@ find_package(Python3 COMPONENTS Interpreter Development.Module REQUIRED)
 
 execute_process(
     COMMAND ${Python3_EXECUTABLE} -c
-    "import os,sys,io;old=sys.stdout;sys.stdout=io.StringIO();import torch;sys.stdout=old;print(os.path.dirname(torch.__file__))"
+    "import importlib.util,os,sys; s=importlib.util.find_spec('torch'); (s is None) and sys.exit(1); print(os.path.dirname(s.origin))"
     OUTPUT_VARIABLE TORCH_PKG_DIR
     OUTPUT_STRIP_TRAILING_WHITESPACE
+    RESULT_VARIABLE TORCH_FIND_RESULT
 )
+if(NOT TORCH_FIND_RESULT EQUAL 0)
+    message(FATAL_ERROR "torch package not found. Please: pip install torch")
+endif()
 set(TORCH_INCLUDE_DIR "${TORCH_PKG_DIR}/include")
 set(TORCH_LIB_DIR "${TORCH_PKG_DIR}/lib")
 message(STATUS "PyTorch package: ${TORCH_PKG_DIR}")
@@ -68,7 +72,7 @@ message(STATUS "torchcomms headers (submodule): ${TORCHCOMMS_INCLUDE_DIR}")
 
 execute_process(
     COMMAND ${Python3_EXECUTABLE} -c
-    "import os,sys,io;old=sys.stdout;sys.stdout=io.StringIO();import torch_npu;sys.stdout=old;print(os.path.dirname(torch_npu.__file__))"
+    "import importlib.util,os,sys; s=importlib.util.find_spec('torch_npu'); (s is None) and sys.exit(1); print(os.path.dirname(s.origin))"
     OUTPUT_VARIABLE TORCH_NPU_PKG_DIR
     OUTPUT_STRIP_TRAILING_WHITESPACE
     RESULT_VARIABLE TORCH_NPU_FIND_RESULT
@@ -85,12 +89,10 @@ endif()
 # 获取 pybind11 头文件路径 (从 PyTorch 内置的 pybind11)
 # ====================================================================
 
-execute_process(
-    COMMAND ${Python3_EXECUTABLE} -c
-    "import os,sys,io;old=sys.stdout;sys.stdout=io.StringIO();import torch;p=os.path.join(os.path.dirname(torch.__file__),'include','pybind11');sys.stdout=old;print(p if os.path.exists(os.path.join(p,'pybind11.h')) else '')"
-    OUTPUT_VARIABLE PYBIND11_INCLUDE_DIR
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-)
+set(PYBIND11_INCLUDE_DIR "")
+if(EXISTS "${TORCH_INCLUDE_DIR}/pybind11/pybind11.h")
+    set(PYBIND11_INCLUDE_DIR "${TORCH_INCLUDE_DIR}/pybind11")
+endif()
 
 # ====================================================================
 # CANN: 优先使用已安装的 CANN Toolkit，否则使用 submodule + stub 库
