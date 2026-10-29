@@ -73,7 +73,6 @@ class build_ext(build_ext_orig):
 
         cmake_args = [
             f"-DCMAKE_BUILD_TYPE={cfg}",
-            f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={extdir.parent.absolute()}",
             f"-DCMAKE_INSTALL_PREFIX={extdir.parent.absolute()}",
             f"-DPython3_EXECUTABLE={sys.executable}",
         ]
